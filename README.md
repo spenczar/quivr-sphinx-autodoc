@@ -15,7 +15,7 @@ Then enable by adding to the sphinx extensions in your `conf.py` sphinx configur
 ```py
 extensions = [
     "sphinx.ext.autodoc",
-	"quivr_sphinx_autodoc",
+    "quivr_sphinx_autodoc",
 ]
 ```
 
