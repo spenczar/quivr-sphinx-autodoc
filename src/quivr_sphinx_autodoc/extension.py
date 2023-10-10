@@ -2,7 +2,7 @@ from typing import Any, Iterator, Optional
 
 import quivr as qv
 import quivr.attributes
-from sphinx.ext.autodoc import AttributeDocumenter, ClassDocumenter, ObjectMember
+from sphinx.ext.autodoc import AttributeDocumenter, ClassDocumenter, Documenter, ObjectMember
 from sphinx.pycode import ModuleAnalyzer
 
 from quivr_sphinx_autodoc.__version__ import version
@@ -33,7 +33,7 @@ class QuivrTableDocumenter(ClassDocumenter):
         # Add schema to members
         pa_schema = self.object.schema
         schema_member = ObjectMember("schema", pa_schema, docstring="Pyarrow table schema", skipped=False)
-        members = [schema_member, *members]
+        members = [*members, schema_member]
 
         return check_module, members
 
@@ -51,6 +51,18 @@ class QuivrTableDocumenter(ClassDocumenter):
             member for member in filtered_members if member[0] not in column_names and member[0] not in attr_names
         ]
         return filtered_members
+
+    def sort_members(self, documenters: list[tuple[Documenter, bool]], order: str) -> list[tuple[Documenter, bool]]:
+        sorted_members = super().sort_members(documenters, order)
+
+        # Yank out schema and put it at the front
+        for i, (doc, _) in enumerate(sorted_members):
+            if isinstance(doc, QuivrSchemaDocumenter):
+                schema_doc = sorted_members.pop(i)
+                sorted_members.insert(0, schema_doc)
+                break
+
+        return sorted_members
 
 
 class QuivrSchemaDocumenter(AttributeDocumenter):
